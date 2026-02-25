@@ -25,6 +25,7 @@ public class MetaConversionsService {
             LeadConvertedEvent event = objectMapper.readValue(payload, LeadConvertedEvent.class);
             sendConversion(event);
         } catch (Exception e) {
+            log.error("meta.payload.parse.error payloadSize={}", payload == null ? 0 : payload.length(), e);
             throw new RuntimeException("Failed to parse payload for Meta conversion", e);
         }
     }

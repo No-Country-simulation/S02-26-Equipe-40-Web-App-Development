@@ -22,6 +22,7 @@ public class GoogleConversionsService {
             LeadConvertedEvent event = objectMapper.readValue(payload, LeadConvertedEvent.class);
             sendConversion(event);
         } catch (Exception e) {
+            log.error("google.payload.parse.error payloadSize={}", payload == null ? 0 : payload.length(), e);
             throw new RuntimeException("Failed to parse payload for Google conversion", e);
         }
     }

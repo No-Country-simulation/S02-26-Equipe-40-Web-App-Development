@@ -4,6 +4,8 @@ import com.nocountry.conversionflow.conversionflow_api.controller.dto.CreateLead
 import com.nocountry.conversionflow.conversionflow_api.domain.entity.Lead;
 import com.nocountry.conversionflow.conversionflow_api.service.LeadService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/leads")
 public class LeadController {
 
+    private static final Logger log = LoggerFactory.getLogger(LeadController.class);
     private final LeadService leadService;
 
     public LeadController(LeadService leadService) {
@@ -19,6 +22,7 @@ public class LeadController {
 
     @PostMapping
     public ResponseEntity<Lead> createLead(@Valid @RequestBody CreateLeadRequestDTO request) {
+        log.info("lead.create.request externalId={} email={}", request.externalId(), request.email());
 
         Lead lead = leadService.createLead(
                 request.externalId(),
@@ -29,6 +33,7 @@ public class LeadController {
                 request.fbc()
         );
 
+        log.info("lead.create.success leadId={} externalId={} status={}", lead.getId(), lead.getExternalId(), lead.getStatus());
         return ResponseEntity.ok(lead);
     }
 }

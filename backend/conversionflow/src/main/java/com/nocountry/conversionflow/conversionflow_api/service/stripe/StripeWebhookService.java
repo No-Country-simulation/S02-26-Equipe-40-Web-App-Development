@@ -60,6 +60,7 @@ public class StripeWebhookService {
             String fbp,
             String fbc
     ) throws StripeException {
+        log.info("stripe.checkout.create start leadId={} plan={}", leadId, plan);
 
         Lead lead = leadRepository.findById(leadId)
                 .orElseThrow(() -> new IllegalArgumentException("Lead not found: " + leadId));
@@ -92,6 +93,8 @@ public class StripeWebhookService {
             throw new IllegalStateException("Stripe did not return checkout URL");
         }
 
+        log.info("stripe.checkout.create success leadId={} plan={} sessionId={}",
+                leadId, normalizedPlan, session.getId());
         return session.getUrl();
     }
 
@@ -115,11 +118,14 @@ public class StripeWebhookService {
 
     @Transactional
     public void handleWebhook(String payload, String signatureHeader) {
+        log.info("stripe.webhook.handle start payloadSize={}", payload == null ? 0 : payload.length());
 
         Event event = constructStripeEvent(payload, signatureHeader);
+        log.info("stripe.webhook.handle parsed eventType={} eventId={}", event.getType(), event.getId());
 
         // MVP: só tratamos checkout.session.completed
         if (!"checkout.session.completed".equals(event.getType())) {
+            log.info("stripe.webhook.handle ignored eventType={} eventId={}", event.getType(), event.getId());
             return;
         }
 
@@ -178,11 +184,17 @@ public class StripeWebhookService {
         payment.setLead(lead);
         payment.setCreatedAt(OffsetDateTime.now());
         paymentRepository.save(payment);
+        log.info("stripe.webhook.payment.saved leadId={} stripeEventId={} paymentIntentId={} amountCents={} currency={}",
+                lead.getId(), stripeEventId, paymentIntentId, amountCents, currency);
 
         // Atualiza Lead como WON (idempotente pelo Payment)
         if (!lead.isWon()) {
             lead.markAsWon(amount);
             leadRepository.save(lead);
+            log.info("stripe.webhook.lead.updated leadId={} status={} convertedAmount={}",
+                    lead.getId(), lead.getStatus(), lead.getConvertedAmount());
+        } else {
+            log.info("stripe.webhook.lead.alreadyWon leadId={}", lead.getId());
         }
 
         // Publica evento AFTER_COMMIT (listener vai criar dispatches)
@@ -193,8 +205,10 @@ public class StripeWebhookService {
         try {
             return Webhook.constructEvent(payload, signatureHeader, stripeProperties.getWebhookSecret());
         } catch (SignatureVerificationException e) {
+            log.error("stripe.webhook.signature.invalid", e);
             throw new RuntimeException("Invalid Stripe signature", e);
         } catch (Exception e) {
+            log.error("stripe.webhook.parse.error", e);
             throw new RuntimeException("Error parsing Stripe event", e);
         }
     }
@@ -219,6 +233,7 @@ public class StripeWebhookService {
         try {
             return PaymentIntent.retrieve(paymentIntentId);
         } catch (StripeException e) {
+            log.error("stripe.paymentIntent.retrieve.error paymentIntentId={}", paymentIntentId, e);
             throw new RuntimeException("Error retrieving PaymentIntent", e);
         }
     }
