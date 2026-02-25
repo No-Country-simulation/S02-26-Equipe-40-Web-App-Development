@@ -20,7 +20,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/leads/**",
                                 "/checkout/**",        // ✅ libera tudo em /checkout/*
-                                "/stripe/webhook",     // webhook exato
+                                "/webhooks/stripe",     // webhook exato
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
