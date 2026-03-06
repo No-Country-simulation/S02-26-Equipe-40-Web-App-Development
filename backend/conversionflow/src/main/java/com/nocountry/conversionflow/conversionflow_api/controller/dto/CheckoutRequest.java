@@ -20,4 +20,6 @@ public class CheckoutRequest {
     private String fbclid;
     private String fbp;
     private String fbc;
+    private String utmSource;
+    private String utmCampaign;
 }

@@ -15,6 +15,8 @@ public record CreateLeadRequestDTO(
         String gclid,
         String fbclid,
         String fbp,
-        String fbc
+        String fbc,
+        String utmSource,
+        String utmCampaign
 
 ) {}

@@ -1,9 +1,8 @@
 package com.nocountry.conversionflow.conversionflow_api.controller;
 
+import com.nocountry.conversionflow.conversionflow_api.application.usecase.StartCheckoutUseCase;
 import com.nocountry.conversionflow.conversionflow_api.controller.dto.CheckoutRequest;
 import com.nocountry.conversionflow.conversionflow_api.controller.dto.CheckoutResponse;
-import com.nocountry.conversionflow.conversionflow_api.service.stripe.StripeWebhookService;
-import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,25 +15,26 @@ public class CheckoutController {
 
     private static final Logger log = LoggerFactory.getLogger(CheckoutController.class);
 
-    private final StripeWebhookService stripeWebhookService;
+    private final StartCheckoutUseCase startCheckoutUseCase;
 
-    public CheckoutController(StripeWebhookService stripeWebhookService) {
-        this.stripeWebhookService = stripeWebhookService;
+    public CheckoutController(StartCheckoutUseCase startCheckoutUseCase) {
+        this.startCheckoutUseCase = startCheckoutUseCase;
     }
 
     @PostMapping
-    public ResponseEntity<CheckoutResponse> createCheckout(@Valid @RequestBody CheckoutRequest request)
-            throws StripeException {
+    public ResponseEntity<CheckoutResponse> createCheckout(@Valid @RequestBody CheckoutRequest request) {
 
         log.info("Creating checkout. leadId={}, plan={}", request.getLeadId(), request.getPlan());
 
-        String url = stripeWebhookService.createCheckoutSession(
+        String url = startCheckoutUseCase.execute(
                 request.getLeadId(),
                 request.getPlan(),
                 request.getGclid(),
                 request.getFbclid(),
                 request.getFbp(),
-                request.getFbc()
+                request.getFbc(),
+                request.getUtmSource(),
+                request.getUtmCampaign()
         );
 
         return ResponseEntity.ok(new CheckoutResponse(url));

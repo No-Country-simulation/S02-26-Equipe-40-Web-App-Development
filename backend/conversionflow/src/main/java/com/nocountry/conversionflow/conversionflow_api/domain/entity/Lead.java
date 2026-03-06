@@ -80,11 +80,31 @@ public class Lead {
         return this.status == LeadStatus.WON;
     }
 
-    public void updateTracking(String gclid, String fbclid, String fbp, String fbc) {
-        if (gclid != null && !gclid.isBlank()) this.gclid = gclid;
-        if (fbclid != null && !fbclid.isBlank()) this.fbclid = fbclid;
-        if (fbp != null && !fbp.isBlank()) this.fbp = fbp;
-        if (fbc != null && !fbc.isBlank()) this.fbc = fbc;
+    public void updateTracking(
+            String gclid,
+            String fbclid,
+            String fbp,
+            String fbc,
+            String utmSource,
+            String utmCampaign
+    ) {
+        // Non-destructive merge: keep existing non-blank values and fill only missing ones.
+        this.gclid = mergeNonDestructive(this.gclid, gclid);
+        this.fbclid = mergeNonDestructive(this.fbclid, fbclid);
+        this.fbp = mergeNonDestructive(this.fbp, fbp);
+        this.fbc = mergeNonDestructive(this.fbc, fbc);
+        this.utmSource = mergeNonDestructive(this.utmSource, utmSource);
+        this.utmCampaign = mergeNonDestructive(this.utmCampaign, utmCampaign);
+    }
+
+    private String mergeNonDestructive(String currentValue, String incomingValue) {
+        if (currentValue != null && !currentValue.isBlank()) {
+            return currentValue;
+        }
+        if (incomingValue == null || incomingValue.isBlank()) {
+            return currentValue;
+        }
+        return incomingValue;
     }
 
     // ===== Getters =====

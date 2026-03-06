@@ -1,20 +1,22 @@
 package com.nocountry.conversionflow.conversionflow_api.infrastructure.stripe;
 
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.checkout.Session;
-
-import java.math.BigDecimal;
 import java.util.Map;
 
 public interface StripeClient {
 
-    Session createCheckoutSession(
-            String currency,
-            BigDecimal amount,
+    StripeCheckoutSession createCheckoutSession(
             String successUrl,
             String cancelUrl,
+            String priceId,
             Map<String, String> metadata
     );
 
-    PaymentIntent retrievePaymentIntent(String paymentIntentId);
+    StripeWebhookCheckoutEvent parseCheckoutCompletedEvent(
+            String payload,
+            String signatureHeader
+    );
+
+    StripeSessionSnapshot retrieveSession(String checkoutSessionId);
+
+    StripePaymentIntentSnapshot retrievePaymentIntent(String paymentIntentId);
 }

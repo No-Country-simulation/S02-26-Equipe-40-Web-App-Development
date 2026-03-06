@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/conversionflow
-    username: postgres
-    password: admin
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/conversionflow}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:admin}
     driver-class-name: org.postgresql.Driver
 
   flyway:
@@ -29,3 +29,8 @@ stripe:
     incorporation_basic: ${STRIPE_PRICE_INCORPORATION_BASIC:}
     incorporation_premium: ${STRIPE_PRICE_INCORPORATION_PREMIUM:}
     accounting_monthly: ${STRIPE_PRICE_ACCOUNTING_MONTHLY:}
+
+dispatch:
+  retry:
+    max-attempts: ${DISPATCH_RETRY_MAX_ATTEMPTS:5}
+    interval-ms: ${DISPATCH_RETRY_INTERVAL_MS:60000}

@@ -1,0 +1,8 @@
+package com.nocountry.conversionflow.conversionflow_api.application.exception;
+
+public class InvalidInputException extends RuntimeException {
+
+    public InvalidInputException(String message) {
+        super(message);
+    }
+}

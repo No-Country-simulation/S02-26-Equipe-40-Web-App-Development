@@ -1,0 +1,105 @@
+spring:
+  application:
+    name: gatewayservice-api
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: ${GATEWAY_DEFAULT_CONNECT_TIMEOUT_MS:1000}
+        response-timeout: ${GATEWAY_DEFAULT_RESPONSE_TIMEOUT_MS:4000ms}
+      routes:
+        - id: auth-api
+          enabled: ${GATEWAY_ROUTE_AUTH_API_ENABLED:true}
+          uri: ${AUTHSERVICE_BASE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authServiceCircuit
+                fallbackUri: forward:/internal/v1/gateway/fallback/authservice
+          metadata:
+            connect-timeout: ${GATEWAY_AUTH_CONNECT_TIMEOUT_MS:1000}
+            response-timeout: ${GATEWAY_AUTH_RESPONSE_TIMEOUT_MS:3000}
+        - id: auth-oauth
+          enabled: ${GATEWAY_ROUTE_AUTH_OAUTH_ENABLED:true}
+          uri: ${AUTHSERVICE_BASE_URL:http://localhost:8090}
+          predicates:
+            - Path=/oauth2/**,/login/oauth2/**
+          metadata:
+            connect-timeout: ${GATEWAY_AUTH_CONNECT_TIMEOUT_MS:1000}
+            response-timeout: ${GATEWAY_AUTH_RESPONSE_TIMEOUT_MS:3000}
+        - id: conversionflow-api
+          enabled: ${GATEWAY_ROUTE_CONVERSIONFLOW_API_ENABLED:true}
+          uri: ${CONVERSIONFLOW_BASE_URL:http://localhost:8080}
+          predicates:
+            - Path=/api/v1/leads/**,/api/v1/checkout/**,/api/v1/webhooks/**,/api/v1/pixel-events/**
+          filters:
+            - RewritePath=/api/v1/(?<segment>.*), /${segment}
+            - name: CircuitBreaker
+              args:
+                name: conversionflowCircuit
+                fallbackUri: forward:/internal/v1/gateway/fallback/conversionflow
+            - name: Retry
+              args:
+                retries: ${GATEWAY_CONVERSIONFLOW_RETRY_ATTEMPTS:1}
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,SERVICE_UNAVAILABLE
+                methods: GET,HEAD
+          metadata:
+            connect-timeout: ${GATEWAY_CONVERSIONFLOW_CONNECT_TIMEOUT_MS:1000}
+            response-timeout: ${GATEWAY_CONVERSIONFLOW_RESPONSE_TIMEOUT_MS:4000}
+
+server:
+  port: ${SERVER_PORT:8070}
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+app:
+  security:
+    admin-user: ${GATEWAY_ADMIN_USER:gateway-admin}
+    admin-pass: ${GATEWAY_ADMIN_PASS:change-me}
+    jwt:
+      secret: ${AUTH_JWT_SECRET:change-me-change-me-change-me-change-me}
+      issuer: ${AUTH_JWT_ISSUER:authservice-api}
+      audience: ${AUTH_JWT_AUDIENCE:}
+  rate-limit:
+    enabled: ${GATEWAY_RATE_LIMIT_ENABLED:true}
+    requests-per-window: ${GATEWAY_RATE_LIMIT_REQUESTS_PER_WINDOW:60}
+    window-seconds: ${GATEWAY_RATE_LIMIT_WINDOW_SECONDS:60}
+    timeout-ms: ${GATEWAY_RATE_LIMIT_TIMEOUT_MS:0}
+  cors:
+    allowed-origins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://localhost:5174}
+    allowed-methods: ${GATEWAY_CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+    allowed-headers: ${GATEWAY_CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Correlation-Id}
+    exposed-headers: ${GATEWAY_CORS_EXPOSED_HEADERS:X-Correlation-Id,X-RateLimit-Limit,X-RateLimit-Remaining,X-RateLimit-Window-Seconds,Retry-After}
+    allow-credentials: ${GATEWAY_CORS_ALLOW_CREDENTIALS:true}
+    max-age-seconds: ${GATEWAY_CORS_MAX_AGE_SECONDS:3600}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      authServiceCircuit:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: ${GATEWAY_AUTH_CB_WINDOW_SIZE:10}
+        minimumNumberOfCalls: ${GATEWAY_AUTH_CB_MIN_CALLS:5}
+        permittedNumberOfCallsInHalfOpenState: ${GATEWAY_AUTH_CB_HALF_OPEN_CALLS:3}
+        waitDurationInOpenState: ${GATEWAY_AUTH_CB_OPEN_MS:30000}ms
+        failureRateThreshold: ${GATEWAY_AUTH_CB_FAILURE_RATE:50}
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      conversionflowCircuit:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: ${GATEWAY_CONVERSIONFLOW_CB_WINDOW_SIZE:10}
+        minimumNumberOfCalls: ${GATEWAY_CONVERSIONFLOW_CB_MIN_CALLS:5}
+        permittedNumberOfCallsInHalfOpenState: ${GATEWAY_CONVERSIONFLOW_CB_HALF_OPEN_CALLS:3}
+        waitDurationInOpenState: ${GATEWAY_CONVERSIONFLOW_CB_OPEN_MS:30000}ms
+        failureRateThreshold: ${GATEWAY_CONVERSIONFLOW_CB_FAILURE_RATE:50}
+        automaticTransitionFromOpenToHalfOpenEnabled: true

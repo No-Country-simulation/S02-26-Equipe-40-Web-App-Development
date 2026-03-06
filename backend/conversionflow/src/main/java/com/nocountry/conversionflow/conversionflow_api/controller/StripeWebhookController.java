@@ -1,6 +1,6 @@
 package com.nocountry.conversionflow.conversionflow_api.controller;
 
-import com.nocountry.conversionflow.conversionflow_api.service.stripe.StripeWebhookService;
+import com.nocountry.conversionflow.conversionflow_api.application.usecase.ConfirmPaymentUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.*;
 public class StripeWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(StripeWebhookController.class);
-    private final StripeWebhookService stripeWebhookService;
+    private final ConfirmPaymentUseCase confirmPaymentUseCase;
 
-    public StripeWebhookController(StripeWebhookService stripeWebhookService) {
-        this.stripeWebhookService = stripeWebhookService;
+    public StripeWebhookController(ConfirmPaymentUseCase confirmPaymentUseCase) {
+        this.confirmPaymentUseCase = confirmPaymentUseCase;
     }
 
     @PostMapping
@@ -26,7 +26,7 @@ public class StripeWebhookController {
                 payload == null ? 0 : payload.length(),
                 sigHeader != null && !sigHeader.isBlank());
 
-        stripeWebhookService.handleWebhook(payload, sigHeader);
+        confirmPaymentUseCase.execute(payload, sigHeader);
 
         log.info("stripe.webhook.request processed");
         return ResponseEntity.ok("ok");

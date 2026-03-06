@@ -25,6 +25,11 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
@@ -53,3 +58,17 @@ google:
 
 pipedrive:
   api-token: ${PIPEDRIVE_API_TOKEN}
+
+dispatch:
+  retry:
+    max-attempts: ${DISPATCH_RETRY_MAX_ATTEMPTS:5}
+    interval-ms: ${DISPATCH_RETRY_INTERVAL_MS:60000}
+
+async:
+  auth:
+    exchange: ${ASYNC_AUTH_EXCHANGE:auth.events}
+    user-registered-queue: ${ASYNC_AUTH_USER_REGISTERED_QUEUE:auth.user.registered.v1}
+    user-registered-routing-key: ${ASYNC_AUTH_USER_REGISTERED_ROUTING_KEY:user.registered.v1}
+    user-registered-retry-queue: ${ASYNC_AUTH_USER_REGISTERED_RETRY_QUEUE:user.registered.v1.retry}
+    user-registered-dlq: ${ASYNC_AUTH_USER_REGISTERED_DLQ:auth.user.registered.v1.dlq}
+    retry-delay-ms: ${ASYNC_AUTH_RETRY_DELAY_MS:30000}
