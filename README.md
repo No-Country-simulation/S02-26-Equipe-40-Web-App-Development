@@ -113,7 +113,7 @@ backend/conversionflow
 
 A união de design estratégico, front-end performático e back-end à prova de falhas:
 
-* **Cássia Nascimento** - Frontend Engineer & Product Designer - [LinkedIn](https://www.linkedin.com/in/cassia-irene/) | [GitHub](https://github.com/Cassia-Irene)
+* **Cássia Nascimento** - Frontend Engineer & Product Designer - [LinkedIn](https://www.linkedin.com/in/cassia--nascimento/) | [GitHub](https://github.com/cassia-nascimento)
 * **Leonardo Ferreira** - Frontend Engineer & Product Designer - [LinkedIn](https://www.linkedin.com/in/leonardoferrza) | [GitHub](https://github.com/leonardoferrza)
 * **Tirso Alcazar** - Backend Developer - [LinkedIn](https://www.linkedin.com/in/tirsoalcazar/) | [GitHub](https://github.com/HandlezGZ)
 * **Webster Spacacheri** - Backend Developer - [LinkedIn](https://www.linkedin.com/in/webster-spacacheri/) | [GitHub](https://github.com/Webster-TI)
